@@ -21,16 +21,53 @@ def get_int_value_default(_config: dict, _key, default):
     return int(_config.get(_key))
 
 
+# # 获取当前时间对应的最大和最小步数
+# def get_min_max_by_time(hour=None, minute=None):
+#     if hour is None:
+#         hour = time_bj.hour
+#     if minute is None:
+#         minute = time_bj.minute
+#     time_rate = min((hour * 60 + minute) / (22 * 60), 1)
+#     min_step = get_int_value_default(config, 'MIN_STEP', 18000)
+#     max_step = get_int_value_default(config, 'MAX_STEP', 25000)
+#     return int(time_rate * min_step), int(time_rate * max_step)
+
+
 # 获取当前时间对应的最大和最小步数
 def get_min_max_by_time(hour=None, minute=None):
-    if hour is None:
-        hour = time_bj.hour
-    if minute is None:
-        minute = time_bj.minute
-    time_rate = min((hour * 60 + minute) / (22 * 60), 1)
-    min_step = get_int_value_default(config, 'MIN_STEP', 18000)
-    max_step = get_int_value_default(config, 'MAX_STEP', 25000)
-    return int(time_rate * min_step), int(time_rate * max_step)
+    """
+    基于自定义分段规则的步数范围
+    """
+    import pytz
+    from datetime import datetime
+    
+    # 获取北京时间
+    bj_tz = pytz.timezone('Asia/Shanghai')
+    now = datetime.now(bj_tz)
+    current_hour = now.hour
+    current_minute = now.minute
+    current_time = current_hour + current_minute / 60.0
+    
+    # 分段规则：每个时间段 [起始时间, 结束时间, 最小步数, 最大步数]
+    segments = [
+        (9.5, 10.0,   600,  750),   # 9:30 - 10:00
+        (10.0, 10.75, 1000, 1200),  # 10:00 - 10:45
+        (10.75, 12.0, 2600, 3200),  # 10:45 - 12:00
+        (12.0, 13.0,  3300, 3500),  # 12:00 - 13:00
+        (13.0, 15.0,  3600, 3900),  # 13:00 - 15:00
+        (15.0, 18.1667, 3900, 4100), # 15:00 - 18:10
+        (18.1667, 19.75, 4200, 4400), # 18:10 - 19:45
+        (19.75, 21.0,  4500, 5000),  # 19:45 - 21:00
+        (21.0, 24.0,   6800, 7800),  # 21:00 - 24:00
+    ]
+    
+    # 查找当前时间所在的分段
+    for start, end, min_step, max_step in segments:
+        if start <= current_time < end:
+            return min_step, max_step
+    
+    # 不在任何分段内（0:00 - 9:30），返回 0-0
+    return 0, 0
 
 
 # 虚拟ip地址
