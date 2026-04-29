@@ -15,7 +15,7 @@
 
 ### 如果觉得好用，请给一个免费的[star](https://github.com/TonyJiangWJ/mimotion/)吧
 
-## Github Actions 部署指南
+## Github Actions 部署指南 
 
 ### 一、Fork 此仓库，然后创建token
 
